@@ -1,4 +1,6 @@
-<<<<<<< HEAD
+# react-iot--cognito
+A React App which logs into Cognito and makes a IOT Call
+
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 
 Below you will find some information on how to perform common tasks.<br>
@@ -2434,6 +2436,3 @@ In the future, we might start automatically compiling incompatible third-party m
 
 If you have ideas for more “How To” recipes that should be on this page, [let us know](https://github.com/facebookincubator/create-react-app/issues) or [contribute some!](https://github.com/facebookincubator/create-react-app/edit/master/packages/react-scripts/template/README.md)
 =======
-# react-iot--cognito
-A React App which logs into Cognito and makes a IOT Call
->>>>>>> 402be6613e9f2101e0722393e61402db8a3c4747
