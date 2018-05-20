@@ -9,10 +9,10 @@ export default class Action extends Component {
   }
 
   state = {
-    iotThingName: "iOTThings1",
-    iotEndpoint: "a2mk4nyc927oml.iot.us-east-1.amazonaws.com",
+    iotThingName: process.env.REACT_APP_iotThingName,
+    iotEndpoint: process.env.REACT_APP_iotEndpoint,
     responses: [],
-    iotPolicy: "iOTThings1-Policy"
+    iotPolicy: process.env.REACT_APP_iotPolicy
   }
 
   getThingShadow = () => {
@@ -24,7 +24,7 @@ export default class Action extends Component {
     iotdata.getThingShadow(params, (err, data) => {
       let resps = this.state.responses;
       if (err) {
-          resps.push(this.buildResponseObject("danger",err, err.stack));
+          resps.push(this.buildResponseObject("danger","Failed with error", JSON.stringify(err)));
       }
       else {
           resps.push(this.buildResponseObject("success","Successfully Retrieved Thing Shadow Details", JSON.stringify(data)));
@@ -40,9 +40,41 @@ export default class Action extends Component {
   }
 
   resetHandler = () => {
+    let cognitoUser = this.props.cogUser;
     let resps = this.state.responses;
-    resps.push(this.buildResponseObject("success","Reset", "Clearing the Identity from the Cognito IDP"));
-    this.setState({responses : resps});
+    var cognitoidentity = new AWS.CognitoIdentity({apiVersion: '2014-06-30'});;
+    let loginurl = "cognito-idp.us-east-1.amazonaws.com/" + cognitoUser.pool.userPoolId ;
+    var params = {
+      IdentityPoolId: this.props.idPool, /* required */
+      Logins: {
+        [loginurl]: window.sessionStorage.getItem("idToken")
+      }
+    };
+    cognitoidentity.getId(params, (err, data) => {
+      if (err) {
+        resps.push(this.buildResponseObject("danger","Trouble Clearing", JSON.stringify(err)));
+      }
+      else {
+        //resps.push(this.buildResponseObject("success","Desribing", JSON.stringify(data)));          // successful response
+        var params = {
+          IdentityId: data.IdentityId
+        };
+        var params = {
+          IdentityIdsToDelete: [ 
+            data.IdentityId
+          ]
+        };
+        cognitoidentity.deleteIdentities(params, (err, data) => {
+          if (err) {
+            console.log(err, err.stack); // an error occurred
+            resps.push(this.buildResponseObject("danger","Trouble Deleting Identity. As a workaround navigate to the Federated identities and delete the identity." + params.IdentityIdsToDelete[0], JSON.stringify(err)));
+          }
+          else     
+            resps.push(this.buildResponseObject("success","Reset", "Clearing the Identity from the Cognito IDP"));          // successful response
+          this.setState({responses : resps});
+        });
+      }
+    });
   }
 
   buildResponseObject = (responseType, responseTitle, responseBody) => {
@@ -75,7 +107,7 @@ export default class Action extends Component {
         let resps = this.state.responses;
           if (err) {
             console.log('IOT error', err, err.stack); // an error occurred
-            resps.push(this.buildResponseObject("danger",err, err.stack));
+            resps.push(this.buildResponseObject("danger","Failed with error", JSON.stringify(err)));
           }
           else {
             console.log(data);           // successful response

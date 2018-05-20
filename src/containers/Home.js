@@ -12,11 +12,11 @@ import {
 class Home extends Component {
 
     state = {
-        cognitoUserPool: "us-east-1_M5rU9gArT",
-        cognitoIdentityPool: "us-east-1:9790b778-7837-4515-bdb3-58596e153053",
-        clientId: "26oaqs5ancig1r3fr7vndrt11b",
-        email: "admin@example.com",
-        password: "#########",
+        cognitoUserPool: process.env.REACT_APP_cognitoUserPool,
+        cognitoIdentityPool: process.env.REACT_APP_cognitoIdentityPool,
+        clientId: process.env.REACT_APP_clientId,
+        email: process.env.REACT_APP_email,
+        password: process.env.REACT_APP_password,
         authenticated: false,
         cogUser: null
     }
@@ -58,19 +58,14 @@ class Home extends Component {
             Pool: userPool
         };
         var cognitoUser = new CognitoUser(userData);
-    
+
         cognitoUser.authenticateUser(authenticationDetails, {
             onSuccess: (result) => {
                 window.sessionStorage.setItem("idToken", result.getIdToken().getJwtToken());
                 window.sessionStorage.setItem("accessToken", result.getAccessToken().getJwtToken());
                 window.sessionStorage.setItem("refreshToken", result.getRefreshToken().getToken());
-                console.log('idToken: ' + result.getIdToken().getJwtToken());
-                console.log('accessToken: ' + result.getAccessToken().getJwtToken());
-                console.log('refreshToken: ' + result.getRefreshToken().getToken());
                 AWS.config.region = 'us-east-1';
-                console.log(result.getIdToken().getJwtToken());
                 let loginurl = "cognito-idp.us-east-1.amazonaws.com/" + poolData.UserPoolId ;
-                console.log(loginurl);
                 AWS.config.credentials = new AWS.CognitoIdentityCredentials({
                     IdentityPoolId: this.state.cognitoIdentityPool, // your identity pool id here
                     Logins: {
@@ -78,10 +73,13 @@ class Home extends Component {
                         //['cognito-idp.us-east-1.amazonaws.com/' + poolData.UserPoolId] : result.getIdToken().getJwtToken()
                     }
                 });
-    
+                try {
+                    AWS.config.credentials.clearCachedId();
+                }
+                catch (ex) {                    
+                }
                 // Instantiate aws sdk service objects now that the credentials have been updated.
                 // example: var s3 = new AWS.S3();
-                console.log(AWS.config.credentials);
     
                 AWS.config.credentials.refresh((error) => {
                     if (error) {
@@ -101,6 +99,11 @@ class Home extends Component {
                 console.log("Login failure");
                 alert(err);
             },
+
+            newPasswordRequired: function (val)
+            {
+                console.log("New Password");
+            }
     
         });
     }
@@ -150,7 +153,6 @@ class Home extends Component {
                         <Col sm={10}>
                         <FormControl
                             autoFocus
-                            type="email"
                             value={this.state.email}
                             onChange={this.handleChange}
                         />
@@ -182,7 +184,6 @@ class Home extends Component {
             </div>,
             <div class="row">
                 <div class="col-sm-8"> { this.state.authenticated ? <Action cogUser={this.state.cogUser} idPool={this.state.cognitoIdentityPool}/> : null } </div>
-                {/* <div class="col-sm-4"> { this.state.authenticated ? <ResponseMessage/> : null } </div> */}
             </div>
             ]
         );
