@@ -4,11 +4,11 @@ import { BrowserRouter as Router } from "react-router-dom";
 import './index.css';
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
-import dotenv from 'dotenv'
-if (process.env.NODE_ENV !== 'production')
-{  
-    dotenv.config()
-}
+// import dotenv from 'dotenv'
+// if (process.env.NODE_ENV !== 'production')
+// {  
+//     dotenv.config()
+// }
 ReactDOM.render(
     <Router>
         <App />
