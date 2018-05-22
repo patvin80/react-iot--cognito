@@ -15,7 +15,7 @@ handleChange = event => {
 }
 
   state = {
-    iotThingName: "iOTThings1",
+    iotThingName: process.env.REACT_APP_iotThingName,
     iotEndpoint: process.env.REACT_APP_iotEndpoint,
     responses: [],
     iotPolicy: process.env.REACT_APP_iotPolicy
@@ -39,44 +39,25 @@ handleChange = event => {
     });
   }
 
-
-
   resetHandler = () => {
     let cognitoUser = this.props.cogUser;
     let resps = this.state.responses;
     resps = []
-    var cognitoidentity = new AWS.CognitoIdentity({apiVersion: '2014-06-30'});;
-    let loginurl = "cognito-idp.us-east-1.amazonaws.com/" + cognitoUser.pool.userPoolId ;
     var params = {
-      IdentityPoolId: this.props.idPool, /* required */
-      Logins: {
-        [loginurl]: window.sessionStorage.getItem("idToken")
-      }
+      policyName: this.state.iotPolicy, /* required */
+      target: cognitoUser.storage["aws.cognito.identity-id." + this.props.idPool]/* required */
     };
-    cognitoidentity.getId(params, (err, data) => {
-      if (err) {
-        resps.push(this.buildResponseObject("danger","Trouble Clearing", JSON.stringify(err)));
-      }
-      else {
-        //resps.push(this.buildResponseObject("success","Desribing", JSON.stringify(data)));          // successful response
-        var params = {
-          IdentityId: data.IdentityId
-        };
-        var params = {
-          IdentityIdsToDelete: [ 
-            data.IdentityId
-          ]
-        };
-        cognitoidentity.deleteIdentities(params, (err, data) => {
-          if (err) {
-            console.log(err, err.stack); // an error occurred
-            resps.push(this.buildResponseObject("danger","Trouble Deleting Identity. As a workaround navigate to the Federated identities and delete the identity." + params.IdentityIdsToDelete[0], JSON.stringify(err)));
-          }
-          else     
-            resps.push(this.buildResponseObject("success","Reset", "Clearing the Identity from the Cognito IDP"));          // successful response
-          this.setState({responses : resps});
-        });
-      }
+    var iot = new AWS.Iot({apiVersion: '2015-05-28'});
+    iot.detachPolicy(params,  (err, data) => {
+        if (err) {
+          console.log('IOT error', err, err.stack); // an error occurred
+          resps.push(this.buildResponseObject("danger","Failed with error", JSON.stringify(err)));
+        }
+        else {
+          console.log(data);           // successful response
+          resps.push(this.buildResponseObject("success","Successfully Removed Policy", "Policy Name: " + this.state.iotPolicy + " association with Identity " + cognitoUser.storage["aws.cognito.identity-id." + this.props.idPool]));
+        }
+        this.setState({responses : resps});
     });
   }
 
