@@ -8,8 +8,14 @@ export default class Action extends Component {
     super(props);
   }
 
+handleChange = event => {
+  this.setState({
+    [event.target.id]: event.target.value
+  });
+}
+
   state = {
-    iotThingName: process.env.REACT_APP_iotThingName,
+    iotThingName: "iOTThings1",
     iotEndpoint: process.env.REACT_APP_iotEndpoint,
     responses: [],
     iotPolicy: process.env.REACT_APP_iotPolicy
@@ -33,15 +39,12 @@ export default class Action extends Component {
     });
   }
 
-  handleChange = event => {
-      this.setState({
-        [event.target.id]: event.target.value
-      });
-  }
+
 
   resetHandler = () => {
     let cognitoUser = this.props.cogUser;
     let resps = this.state.responses;
+    resps = []
     var cognitoidentity = new AWS.CognitoIdentity({apiVersion: '2014-06-30'});;
     let loginurl = "cognito-idp.us-east-1.amazonaws.com/" + cognitoUser.pool.userPoolId ;
     var params = {
@@ -124,27 +127,28 @@ export default class Action extends Component {
   }
 
   render() {
-    console.log(this.props.cogUser);
     return (
       <div>
         <Form horizontal>
-          <FormGroup controlId="iotThing">
+          <FormGroup controlId="iotThingName">
               <Col componentClass={ControlLabel} sm={3}>
               IoT Thing Name
               </Col>
               <Col sm={5}>
               <FormControl
+                  type="Text"
                   value={this.state.iotThingName}
                   onChange={this.handleChange}
               />
               </Col>
           </FormGroup>
-          <FormGroup controlId="iotEndPoint" className="row">
+          <FormGroup controlId="iotEndpoint" className="row">
               <Col componentClass={ControlLabel} sm={3}>
               IoT End Point
               </Col>
               <Col sm={5}>
               <FormControl
+                  type="Text"
                   value={this.state.iotEndpoint}
                   onChange={this.handleChange}
               />
